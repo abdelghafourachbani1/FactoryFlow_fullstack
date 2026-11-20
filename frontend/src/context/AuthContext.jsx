@@ -1,7 +1,7 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
-import { setBearerToken, setUnauthorizedHandler } from '../services/api';
-import { authService } from '../services/authService';
-import { installationService } from '../services/installationService';
+import { setBearerToken, setUnauthorizedHandler } from '../services/api.js';
+import { authService } from '../services/authService.js';
+import { installationService } from '../services/installationService.js';
 
 const AuthContext = createContext(null);
 
