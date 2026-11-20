@@ -1,48 +1,49 @@
-export function validateRawMaterialForm(values) {
+export function validateProductForm(values) {
   const errors = {};
   const reference = values.reference.trim();
   const name = values.name.trim();
-  const unit = values.unit.trim();
-  const initialStock = Number(values.stock);
-  const alertThreshold = Number(values.alertThreshold);
+  const lines = Array.isArray(values.composition) ? values.composition : [];
 
   if (!reference) {
-    errors.reference = 'La référence est obligatoire.';
+    errors.reference = 'La référence du produit est obligatoire.';
   }
 
   if (!name) {
-    errors.name = 'Le libellé de la matière première est obligatoire.';
+    errors.name = 'Le nom du produit est obligatoire.';
   }
 
-  if (!unit) {
-    errors.unit = 'L’unité (ex. kg, L, unité) est obligatoire.';
+  if (lines.length === 0) {
+    errors.composition = 'Un produit doit contenir au moins une matière première.';
+    return errors;
   }
 
-  if (values.stock === '' || Number.isNaN(initialStock) || initialStock < 0) {
-    errors.stock = 'Le stock initial doit être supérieur ou égal à 0.';
-  }
+  const seenMaterialIds = new Set();
+  const lineErrors = {};
 
-  if (
-    values.alertThreshold === '' ||
-    Number.isNaN(alertThreshold) ||
-    alertThreshold < 0
-  ) {
-    errors.alertThreshold = 'Le seuil d’alerte doit être supérieur ou égal à 0.';
-  }
+  lines.forEach((line, index) => {
+    const currentLineError = {};
+    const materialId = String(line.rawMaterialId || '').trim();
+    const quantity = Number(line.quantity);
 
-  return errors;
-}
+    if (!materialId) {
+      currentLineError.rawMaterialId = 'Sélectionnez une matière première.';
+    } else if (seenMaterialIds.has(materialId)) {
+      currentLineError.rawMaterialId = 'Cette matière première est déjà présente dans la composition.';
+    } else {
+      seenMaterialIds.add(materialId);
+    }
 
-export function validateStockEntryForm(values) {
-  const errors = {};
-  const quantity = Number(values.quantity);
+    if (line.quantity === '' || Number.isNaN(quantity) || quantity <= 0) {
+      currentLineError.quantity = 'La quantité unitaire doit être strictement supérieure à 0.';
+    }
 
-  if (!values.materialId) {
-    errors.materialId = 'Veuillez sélectionner une matière première.';
-  }
+    if (Object.keys(currentLineError).length > 0) {
+      lineErrors[index] = currentLineError;
+    }
+  });
 
-  if (values.quantity === '' || Number.isNaN(quantity) || quantity <= 0) {
-    errors.quantity = 'La quantité d’entrée doit être strictement supérieure à 0.';
+  if (Object.keys(lineErrors).length > 0) {
+    errors.lineErrors = lineErrors;
   }
 
   return errors;
