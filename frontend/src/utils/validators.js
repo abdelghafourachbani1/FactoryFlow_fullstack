@@ -1,40 +1,34 @@
-export function validateProductForm(values) {
+export function validateCreateOrderForm(values) {
   const errors = {};
-  const reference = values.reference.trim();
-  const name = values.name.trim();
-  const lines = Array.isArray(values.composition) ? values.composition : [];
+  const items = Array.isArray(values.items) ? values.items : [];
 
-  if (!reference) {
-    errors.reference = 'La référence du produit est obligatoire.';
+  if (!String(values.operatorId || '').trim()) {
+    errors.operatorId = 'Veuillez sélectionner un opérateur.';
   }
 
-  if (!name) {
-    errors.name = 'Le nom du produit est obligatoire.';
-  }
-
-  if (lines.length === 0) {
-    errors.composition = 'Un produit doit contenir au moins une matière première.';
+  if (items.length === 0) {
+    errors.items = 'L’ordre doit contenir au moins un produit.';
     return errors;
   }
 
-  const seenMaterialIds = new Set();
+  const seenProductIds = new Set();
   const lineErrors = {};
 
-  lines.forEach((line, index) => {
+  items.forEach((line, index) => {
     const currentLineError = {};
-    const materialId = String(line.rawMaterialId || '').trim();
+    const productId = String(line.productId || '').trim();
     const quantity = Number(line.quantity);
 
-    if (!materialId) {
-      currentLineError.rawMaterialId = 'Sélectionnez une matière première.';
-    } else if (seenMaterialIds.has(materialId)) {
-      currentLineError.rawMaterialId = 'Cette matière première est déjà présente dans la composition.';
+    if (!productId) {
+      currentLineError.productId = 'Sélectionnez un produit.';
+    } else if (seenProductIds.has(productId)) {
+      currentLineError.productId = 'Ce produit est déjà présent dans cet ordre.';
     } else {
-      seenMaterialIds.add(materialId);
+      seenProductIds.add(productId);
     }
 
     if (line.quantity === '' || Number.isNaN(quantity) || quantity <= 0) {
-      currentLineError.quantity = 'La quantité unitaire doit être strictement supérieure à 0.';
+      currentLineError.quantity = 'La quantité doit être strictement supérieure à 0.';
     }
 
     if (Object.keys(currentLineError).length > 0) {
